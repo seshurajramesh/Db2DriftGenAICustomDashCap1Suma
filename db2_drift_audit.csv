@@ -1,0 +1,14 @@
+Timestamp,ScannedNodes,DriftStatus,OverallRisk,DriftedParameters,RequiresServiceNowCR
+2026-08-07 18:33:16,"appa_primary, appa_standby",NO_DRIFT,None,None,NO
+2026-08-07 18:54:15,"appa_primary, appa_standby",NO_DRIFT,None,None,NO
+2026-08-07 19:32:13,"appa_primary, appa_standby",DRIFT,Medium,db_cfg.logprimary,YES
+2026-08-07 19:35:47,"appa_primary, appa_standby",NO_DRIFT,None,None,NO
+2026-08-08 04:10:52,"appa_primary, appa_standby",NO_DRIFT,None,None,NO
+2026-08-08 07:23:04,"appa_primary, appa_standby",HADR health query failed on both nodes due to missing SYSIBMADM.HADR_HEALTH view. HADR state unknown.,NO_DRIFT,None,None,NO
+2026-08-08 07:28:04,"appa_primary, appa_standby",HADR not configured or inactive on both nodes (VIEW_MISSING_OR_INACTIVE / UNCONFIGURED_OR_STOPPED),NO_DRIFT,None,None,NO
+2026-08-08 07:32:47,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-08 07:51:29,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-08 08:00:49,"appa_primary, appa_standby",HADR state is REMOTE_CATCHUP_PENDING on both nodes; HADR_CONNECT_STATUS is CONNECTED.,NO_DRIFT,High,None,NO
+2026-08-08 08:33:14,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,NO_DRIFT,None,None,NO
+2026-08-08 08:33:23,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-08 08:33:31,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO

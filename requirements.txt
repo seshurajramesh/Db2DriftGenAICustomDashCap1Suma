@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+python-dotenv
+ibm_db
+requests
+jinja2
