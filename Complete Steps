@@ -1,0 +1,330 @@
+Enterprise DB2 LUW AI Configuration Drift Engine & ServiceNow Change AutomationAn enterprise-grade, automated Database Configuration Drift Management and Governance System built specifically for IBM DB2 LUW High Availability Disaster Recovery (HADR) clusters running on Red Hat Enterprise Linux (RHEL 9) on Azure infrastructure.Powered by FastAPI, Azure AI Foundry (DeepSeek-V3 / LLM), and an interactive Bootstrap 5 UI, this solution eliminates manual DB2 diffing scripts by using AI to analyze raw engine configurations, assess failover/performance risks, generate exact db2 remediation syntax, produce ServiceNow Change Requests (CR) with CTASKs, and maintain a persistent CSV Audit Log.Architecture & WorkflowPlaintext                               ┌── App A Primary  (primary-appa-01   : 10.10.1.4)
+                               ├── App A Standby  (secondary-appa-02 : 10.10.1.5)
+[ App Server: FastAPI ] ───────┤
+ (vm-db2-drift-app)            ├── App B Primary  (primary-appb-01   : 10.10.2.4)
+    10.10.1.100                └── App B Standby  (secondary-appb-02 : 10.10.2.5)
+                                       │
+                                       │ Raw DBCFG / DBMCFG Payload
+                                       ▼
+                         [ Azure AI Foundry (LLM Model) ]
+                                       │
+                                       ├─ Real-time Drift Analysis
+                                       ├─ Mentoring Output
+                                       ├─ ServiceNow CR & CTASK Generation
+                                       └─ CSV Audit Logging (db2_drift_audit.csv)
+Key FeaturesDirect Raw Parameter Analysis: Connects to DB2 instances via native ibm_db drivers to query sysibmadm.dbcfg and sysibmadm.dbmcfg parameters without requiring pre-computed diff logic.Smart AUTOMATIC Parity Handling: Recognizes when parameters on Primary and Standby evaluate to DB2's AUTOMATIC tuning flag and avoids false positive drift alerts.DBA Mentoring Mode: Uses Azure AI Foundry (LLM) to translate parameter mismatches into clear business and technical risk explanations without jargon.Spotlight Top 3 Differences: Highlights the top three parameter mismatches categorized by Performance, Recovery Time, or Failover Reliability.Automated ServiceNow Change Request (CR) & CTASK Generation: Automatically constructs a complete ServiceNow Change Request template (Short Description, Description, Impact, Implementation Plan, Backout Plan, Testing Plan) alongside distinct CTASKs for the Application and DBA teams.Dynamic Outage Classification: Classifies changes as IMMEDIATE (dynamic update, no downtime required) or DEFERRED (requires database/application restart) and updates the ServiceNow outage fields automatically.Persistent CSV Audit Log: Appends every scan result, risk rating, timestamp, and target node list to a local db2_drift_audit.csv file with a one-click CSV export option in the UI.Project StructurePlaintextdb2-drift-poc/
+├── app.py                      # FastAPI Backend Server & AI Engine Orchestrator
+├── .env                        # Local Environment Secrets & DB2 Credentials
+├── requirements.txt            # Python Dependencies
+├── db2_drift_audit.csv         # Automatically generated CSV Audit Log
+└── templates/
+    └── index.html              # Single-page Interactive Web Console & ServiceNow UI
+Setup & Deployment GuidePhase 1: Azure Infrastructure & Azure AI Foundry SetupStep 1: Create Resource GroupLog in to the Azure Portal.Search for Resource groups in the top search bar and click + Create.Select your Subscription.Resource Group Name: rg-db2-hadrRegion: East US (or your preferred region)Click Review + Create > Create.Step 2: Create Virtual Network (VNet) and SubnetSearch for Virtual networks in the top search bar and click + Create.Basics Tab:Resource Group: rg-db2-hadrName: vnet-db2Region: East USIP Addresses Tab:IPv4 Address space: 10.10.0.0/16Click + Add subnet:Subnet name: db2-subnetSubnet address range: 10.10.1.0/24Click Review + create > Create.Step 3: Configure Network Security Group (NSG)Search for Network security groups and click + Create.Name: nsg-db2-driftResource Group: rg-db2-hadrRegion: East USOnce created, open nsg-db2-drift and go to Inbound security rules > + Add:Rule 1 (SSH): Port 22, Priority 100, Name Allow-SSHRule 2 (HTTP App Console): Port 80, Priority 110, Name Allow-HTTPRule 3 (DB2 Listener): Port 50000, Priority 120, Name Allow-DB2-EngineRule 4 (HADR Sync Port): Port 60000, Priority 130, Name Allow-HADR-SyncAssociate this NSG with db2-subnet under Subnets > + Associate.Step 4: Azure AI Foundry SetupSearch for Azure AI Foundry (or Azure OpenAI).Create a new resource named foundry-db2-drift in rg-db2-hadr.Under Model Deployments, deploy a base model (e.g., DeepSeek-V3 or GPT-4) and set the Deployment Name to: db2-drift-analyzerGo to Keys and Endpoint and copy your Endpoint URL, Deployment Name, and API Key.Phase 2: App Server VM Setup & DeploymentSSH into vm-db2-drift-app (10.10.1.100):Bashssh azureuser@10.10.1.100
+Step 1: System Packages & DependenciesBash# Install system packages
+sudo dnf update -y
+sudo dnf install -y python311 python311-pip python311-devel gcc gcc-c++ make
+
+# Setup project directory
+mkdir -p ~/db2-drift-poc/templates
+cd ~/db2-drift-poc
+
+python3.11 -m venv venv
+source venv/bin/activate
+
+# Create requirements.txt
+cat << 'EOF' > requirements.txt
+fastapi
+uvicorn
+python-dotenv
+ibm_db
+requests
+jinja2
+EOF
+
+pip install -r requirements.txt
+Step 2: Configure Environment VariablesCreate the .env file in ~/db2-drift-poc/.env:Bashcat << 'EOF' > .env
+# --- Application A: DB2 HADR Pair ---
+APPA_PRIMARY_HOST=10.10.1.4
+APPA_PRIMARY_PORT=50000
+APPA_PRIMARY_DB=KYDB2A
+APPA_PRIMARY_USER=db2inst1
+APPA_PRIMARY_PWD=db2inst1
+
+APPA_STANDBY_HOST=10.10.1.5
+APPA_STANDBY_PORT=50000
+APPA_STANDBY_DB=KYDB2A
+APPA_STANDBY_USER=db2inst1
+APPA_STANDBY_PWD=db2inst1
+
+# --- Application B: DB2 HADR Pair ---
+APPB_PRIMARY_HOST=10.10.2.4
+APPB_PRIMARY_PORT=50000
+APPB_PRIMARY_DB=KYDB2B
+APPB_PRIMARY_USER=db2inst1
+APPB_PRIMARY_PWD=db2inst1
+
+APPB_STANDBY_HOST=10.10.2.5
+APPB_STANDBY_PORT=50000
+APPB_STANDBY_DB=KYDB2B
+APPB_STANDBY_USER=db2inst1
+APPB_STANDBY_PWD=db2inst1
+
+# --- Azure AI Foundry Credentials ---
+FOUNDRY_ENDPOINT=https://your-foundry-resource.openai.azure.com
+FOUNDRY_DEPLOYMENT=db2-drift-analyzer
+FOUNDRY_API_KEY=your_actual_azure_ai_foundry_key_here
+EOF
+Step 3: Application Code & HTML DashboardPlace app.py in ~/db2-drift-poc/app.py and index.html in ~/db2-drift-poc/templates/index.html.Step 4: Configure systemd Service for App ServerBashcat << 'EOF' | sudo tee /etc/systemd/system/db2drift.service
+[Unit]
+Description=DB2 AI Drift Analyzer Service
+After=network.target
+
+[Service]
+User=azureuser
+WorkingDirectory=/home/azureuser/db2-drift-poc
+ExecStart=/home/azureuser/db2-drift-poc/venv/bin/uvicorn app:app --host 0.0.0.0 --port 80
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now db2drift
+Alternatively, run manually for debugging:Bashsudo $(which uvicorn) app:app --host 0.0.0.0 --port 80
+Phase 3: DB2 Node VM & IBM DB2 11.5 HADR Setup GuideStep 1: Provision DB2 Virtual Machines on AzureDeploy DB2 nodes in vnet-db2 (db2-subnet):Server HostnameRolePrivate IPOSSizeprimary-appa-01App A Primary10.10.1.4RHEL 9.xStandard_D4s_v5secondary-appa-02App A Standby10.10.1.5RHEL 9.xStandard_D4s_v5primary-appb-01App B Primary10.10.2.4RHEL 9.xStandard_D4s_v5secondary-appb-02App B Standby10.10.2.5RHEL 9.xStandard_D4s_v5Step 2: Prerequisites & OS ConfigurationExecute these commands on ALL DB2 nodes:Bash# Update OS & install DB2 dependencies
+sudo dnf update -y
+sudo dnf install -y libaio glibc.i686 libstdc++ ksh pam.i686 numactl file
+
+# Configure kernel tuning parameters for DB2
+cat << 'EOF' | sudo tee /etc/sysctl.d/99-db2.conf
+kernel.shmmax = 18446744073709551615
+kernel.msgmni = 1024
+fs.file-max = 65536
+EOF
+
+sudo sysctl --system
+
+# Update security limits
+cat << 'EOF' | sudo tee -a /etc/security/limits.conf
+db2inst1 soft data -1
+db2inst1 hard data -1
+db2inst1 soft fsize -1
+db2inst1 hard fsize -1
+db2inst1 soft nofile 65536
+db2inst1 hard nofile 65536
+EOF
+
+# Create DB2 Groups and Users
+sudo groupadd -g 1001 db2iadm1
+sudo groupadd -g 1002 db2fadm1
+sudo useradd -u 1001 -g db2iadm1 -m -d /home/db2inst1 db2inst1
+sudo useradd -u 1002 -g db2fadm1 -m -d /home/db2fenc1 db2fenc1
+echo "db2inst1" | sudo passwd --stdin db2inst1
+Step 3: Install IBM DB2 11.5 EngineExecute on ALL DB2 nodes:Bash# Upload/extract your IBM DB2 v11.5 installer tarball
+tar -xvzf v11.5_linuxx64_dec.tar.gz
+cd v11.5_linuxx64_dec
+
+# Run silent installation
+sudo ./db2_install -b /opt/ibm/db2/v11.5 -p SERVER -n
+
+# Create DB2 Instance
+sudo /opt/ibm/db2/v11.5/instance/db2icrt -u db2fenc1 db2inst1
+
+# Configure Instance Communications
+sudo su - db2inst1 -c "db2 update dbm cfg using svcename 50000"
+sudo su - db2inst1 -c "db2set DB2COMM=TCPIP"
+sudo su - db2inst1 -c "db2start"
+Phase 4: Application A HADR Cluster SetupStep 1: Configure Primary (primary-appa-01 - 10.10.1.4)Bashsudo su - db2inst1
+
+# Create Database and enable Archival Logging
+db2 "CREATE DATABASE KYDB2A AUTOMATIC STORAGE YES"
+mkdir -p /home/db2inst1/archlogs /home/db2inst1/backups
+db2 "UPDATE DB CFG FOR KYDB2A USING LOGARCHMETH1 DISK:/home/db2inst1/archlogs"
+
+# Configure HADR parameters on Primary
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_LOCAL_HOST 10.10.1.4"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_LOCAL_SVC 60000"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_REMOTE_HOST 10.10.1.5"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_REMOTE_SVC 60000"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_REMOTE_INST db2inst1"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_SYNCMODE NEARSYNC"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_TIMEOUT 120"
+
+# Online Backup to initialize Standby node
+db2 "BACKUP DB KYDB2A TO /home/db2inst1/backups ONLINE"
+Transfer the backup file to secondary-appa-02:Bashscp /home/db2inst1/backups/* db2inst1@10.10.1.5:/home/db2inst1/backups/
+Step 2: Configure Standby (secondary-appa-02 - 10.10.1.5)Bashsudo su - db2inst1
+
+# Restore Primary Backup
+mkdir -p /home/db2inst1/archlogs /home/db2inst1/backups
+db2 "RESTORE DB KYDB2A FROM /home/db2inst1/backups TAKESET 1"
+
+# Configure HADR parameters on Standby
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_LOCAL_HOST 10.10.1.5"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_LOCAL_SVC 60000"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_REMOTE_HOST 10.10.1.4"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_REMOTE_SVC 60000"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_REMOTE_INST db2inst1"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_SYNCMODE NEARSYNC"
+db2 "UPDATE DB CFG FOR KYDB2A USING HADR_TIMEOUT 120"
+
+# Enable Read on Standby (ROS)
+db2set DB2_HADR_ROS=ON
+
+# Start HADR on Standby Node FIRST
+db2 "START HADR ON DB KYDB2A AS STANDBY"
+
+db2 deactivate db KYDB2A
+db2 activate db KYDB2A
+Step 3: Start Primary HADR & Verify Status (primary-appa-01)Bashsudo su - db2inst1 -c "db2 START HADR ON DB KYDB2A AS PRIMARY"
+sudo su - db2inst1 -c "db2pd -alldbs -hadr"
+Phase 5: Application B HADR Cluster SetupStep 1: Configure Primary (primary-appb-01 - 10.10.2.4)Bashsudo su - db2inst1
+
+db2 "CREATE DATABASE KYDB2B AUTOMATIC STORAGE YES"
+mkdir -p /home/db2inst1/archlogs /home/db2inst1/backups
+db2 "UPDATE DB CFG FOR KYDB2B USING LOGARCHMETH1 DISK:/home/db2inst1/archlogs"
+
+# Configure HADR for App B
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_LOCAL_HOST 10.10.2.4"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_LOCAL_SVC 60000"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_REMOTE_HOST 10.10.2.5"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_REMOTE_SVC 60000"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_REMOTE_INST db2inst1"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_SYNCMODE NEARSYNC"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_TIMEOUT 120"
+db2 "UPDATE DB CFG FOR KYDB2B USING LOGINDEXBUILD ON"
+
+# Online Backup
+db2 "BACKUP DB KYDB2B TO /home/db2inst1/backups ONLINE"
+Transfer the backup file to secondary-appb-02:Bashscp /home/db2inst1/backups/* db2inst1@10.10.2.5:/home/db2inst1/backups/
+Step 2: Configure Standby (secondary-appb-02 - 10.10.2.5)Bashsudo su - db2inst1
+mkdir -p /home/db2inst1/archlogs /home/db2inst1/backups
+
+db2 "RESTORE DB KYDB2B FROM /home/db2inst1/backups TAKESET 1"
+
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_LOCAL_HOST 10.10.2.5"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_LOCAL_SVC 60000"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_REMOTE_HOST 10.10.2.4"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_REMOTE_SVC 60000"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_REMOTE_INST db2inst1"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_SYNCMODE NEARSYNC"
+db2 "UPDATE DB CFG FOR KYDB2B USING HADR_TIMEOUT 120"
+db2 "UPDATE DB CFG FOR KYDB2B USING LOGINDEXBUILD ON"
+
+db2set DB2_HADR_ROS=ON
+
+db2 "START HADR ON DB KYDB2B AS STANDBY"
+
+db2 deactivate db KYDB2B
+db2 activate db KYDB2B
+Step 3: Start Primary HADR (primary-appb-01)Bashsudo su - db2inst1 -c "db2 START HADR ON DB KYDB2B AS PRIMARY"
+Phase 6: Systemd Services Setup for DB2 & HADRExecute on ALL DB2 nodes to ensure automated DB2 and HADR startup upon server reboot:1. DB2 Engine Service (/etc/systemd/system/db2.service)Bashcat << 'EOF' | sudo tee /etc/systemd/system/db2.service
+[Unit]
+Description=IBM Db2 Instance Service for db2inst1
+After=network.target network-online.target rsyslog.service
+Wants=network-online.target
+
+[Service]
+Type=forking
+User=db2inst1
+Group=db2iadm1
+Environment="DB2INSTANCE=db2inst1"
+ExecStart=/bin/bash -lc "db2start"
+ExecStop=/bin/bash -lc "db2stop"
+TimeoutStartSec=300
+TimeoutStopSec=300
+RemainAfterExit=yes
+KillMode=none
+
+[Install]
+WantedBy=multi-user.target
+EOF
+2. HADR Management Service (/etc/systemd/system/db2hadr.service)Bashcat << 'EOF' | sudo tee /etc/systemd/system/db2hadr.service
+[Unit]
+Description=IBM Db2 HADR Startup Service for db2inst1
+After=network.target network-online.target rsyslog.service db2.service
+Wants=network-online.target db2.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=db2inst1
+Group=db2iadm1
+Environment=DB2INSTANCE=db2inst1
+ExecStart=/usr/local/bin/db2hadr_start.sh
+ExecStop=/usr/local/bin/db2hadr_stop.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+3. HADR Scripts ConfigurationNode Specific HADR Scripts:For primary-appa-01:Bashcat << 'EOF' | sudo tee /usr/local/bin/db2hadr_start.sh
+#!/bin/bash
+if [ -f /home/db2inst1/sqllib/db2profile ]; then
+    . /home/db2inst1/sqllib/db2profile
+fi
+db2 start hadr on db KYDB2A as primary
+EOF
+
+cat << 'EOF' | sudo tee /usr/local/bin/db2hadr_stop.sh
+#!/bin/bash
+if [ -f /home/db2inst1/sqllib/db2profile ]; then
+    . /home/db2inst1/sqllib/db2profile
+fi
+db2 stop hadr on db KYDB2A
+EOF
+For secondary-appa-02:Bashcat << 'EOF' | sudo tee /usr/local/bin/db2hadr_start.sh
+#!/bin/bash
+if [ -f /home/db2inst1/sqllib/db2profile ]; then
+    . /home/db2inst1/sqllib/db2profile
+fi
+db2 start hadr on db KYDB2A as standby
+EOF
+
+cat << 'EOF' | sudo tee /usr/local/bin/db2hadr_stop.sh
+#!/bin/bash
+if [ -f /home/db2inst1/sqllib/db2profile ]; then
+    . /home/db2inst1/sqllib/db2profile
+fi
+db2 stop hadr on db KYDB2A
+EOF
+For primary-appb-01:Bashcat << 'EOF' | sudo tee /usr/local/bin/db2hadr_start.sh
+#!/bin/bash
+if [ -f /home/db2inst1/sqllib/db2profile ]; then
+    . /home/db2inst1/sqllib/db2profile
+fi
+db2 start hadr on db KYDB2B as primary
+EOF
+
+cat << 'EOF' | sudo tee /usr/local/bin/db2hadr_stop.sh
+#!/bin/bash
+if [ -f /home/db2inst1/sqllib/db2profile ]; then
+    . /home/db2inst1/sqllib/db2profile
+fi
+db2 stop hadr on db KYDB2B
+EOF
+For secondary-appb-02:Bashcat << 'EOF' | sudo tee /usr/local/bin/db2hadr_start.sh
+#!/bin/bash
+if [ -f /home/db2inst1/sqllib/db2profile ]; then
+    . /home/db2inst1/sqllib/db2profile
+fi
+db2 start hadr on db KYDB2B as standby
+EOF
+
+cat << 'EOF' | sudo tee /usr/local/bin/db2hadr_stop.sh
+#!/bin/bash
+if [ -f /home/db2inst1/sqllib/db2profile ]; then
+    . /home/db2inst1/sqllib/db2profile
+fi
+db2 stop hadr on db KYDB2B
+EOF
+4. Enable ServicesExecute on ALL DB2 nodes:Bashsudo chmod 755 /usr/local/bin/db2hadr_start.sh /usr/local/bin/db2hadr_stop.sh
+sudo chown db2inst1:db2iadm1 /usr/local/bin/db2hadr_start.sh /usr/local/bin/db2hadr_stop.sh
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now db2.service
+sudo systemctl enable --now db2hadr.service
+Phase 7: Operational Verification & TestingOpen your web browser to http://<YOUR_APP_VM_PUBLIC_IP> ([http://10.10.1.100](http://10.10.1.100)).Ensure live status checks show Online (Green) for all nodes.Select App A Only or Select All and click Analyze Selected Nodes.When nodes match, the system renders a green NO_DRIFT success card and hides the ServiceNow section.Phase 8: Simulating Configuration Drift (Testing Your App)To demonstrate live AI triage, mentoring explanations, dynamic update classification, and ServiceNow CR template generation:Log in to secondary-appa-02 (10.10.1.5) and introduce parameter drift on the standby database:Bashsudo su - db2inst1
+db2 "UPDATE DB CFG FOR KYDB2A USING LOGFILSIZ 4000"
+db2 "UPDATE DB CFG FOR KYDB2A USING BUFFPAGE 2000"
+Return to the web console and click Analyze Selected Nodes.AI Action Output:Detects parameter mismatches between primary-appa-01 and secondary-appa-02.Flags risk as HIGH due to reduced buffer pool pages (buffpage) and smaller log sizes (logfilsiz).Explains the impact in DBA mentor terms.Classifies required update types (IMMEDIATE vs DEFERRED).Automatically calculates implementation and backout timelines (75% / 25% window split).Generates the complete ServiceNow Change Request and CTASK execution template.Appends execution metrics to db2_drift_audit.csv.
