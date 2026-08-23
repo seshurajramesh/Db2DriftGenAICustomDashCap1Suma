@@ -12,3 +12,89 @@ Timestamp,ScannedNodes,DriftStatus,OverallRisk,DriftedParameters,RequiresService
 2026-08-08 08:33:14,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,NO_DRIFT,None,None,NO
 2026-08-08 08:33:23,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
 2026-08-08 08:33:31,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 17:10:42,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 17:17:31,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 17:25:57,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 17:29:35,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 17:36:22,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 17:40:14,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 18:18:48,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 18:23:55,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 18:29:07,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 18:29:59,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 18:31:43,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-09 18:33:12,"appb_primary, appb_standby",PEER / CONNECTED,DRIFT,Low,db_cfg.logprimary,YES
+2026-08-09 18:34:10,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-09 18:39:49,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,DRIFT,Low,db_cfg.LOGPRIMARY,YES
+2026-08-10 18:00:10,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 18:02:47,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 18:05:53,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.logprimary,YES
+2026-08-10 18:08:54,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 18:11:56,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 18:14:58,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 18:18:18,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Low,db_cfg.LOGPRIMARY,YES
+2026-08-10 18:27:02,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-10 18:27:07,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 19:21:37,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 19:21:42,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 19:31:21,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-10 19:37:20,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Low,db_cfg.LOGPRIMARY,YES
+2026-08-10 19:40:16,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 19:51:10,"appb_primary, appb_standby",PEER / CONNECTED,DRIFT,Medium,db_cfg.logprimary,YES
+2026-08-10 19:51:16,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 19:54:11,"appb_primary, appb_standby",PEER / CONNECTED,DRIFT,Medium,db_cfg.logprimary,YES
+2026-08-10 19:57:11,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-10 20:00:10,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 20:03:10,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 20:06:55,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 20:09:41,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 20:15:19,"appb_primary, appb_standby",PEER / CONNECTED,DRIFT,Low,db_cfg.logprimary,YES
+2026-08-10 20:17:35,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-10 20:25:28,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Low,db_cfg.LOGPRIMARY,YES
+2026-08-10 20:25:32,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 20:28:24,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-10 20:28:31,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-10 20:28:44,"appb_primary, appb_standby",PEER / CONNECTED,DRIFT,Low,db_cfg.LOGPRIMARY,YES
+2026-08-11 03:29:30,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-11 04:02:49,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-11 04:04:18,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-11 04:07:16,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-11 04:10:20,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-11 04:14:42,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-11 04:15:06,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Low,db_cfg.LOGPRIMARY,YES
+2026-08-11 04:15:40,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-11 04:49:41,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-11 04:50:03,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-11 13:11:39,"appb_primary, appb_standby",PEER / CONNECTED,DRIFT,Medium,db_cfg.logprimary,YES
+2026-08-11 14:15:04,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-11 14:27:06,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-11 14:33:07,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-11 14:39:10,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-11 15:00:17,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-11 15:03:23,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-11 15:54:52,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-11 16:02:37,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Low,db_cfg.LOGPRIMARY,YES
+2026-08-11 16:04:34,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-11 16:09:58,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both nodes.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-11 16:13:00,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-11 16:52:20,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-11 16:54:15,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-12 09:05:49,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-12 09:07:47,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-12 09:09:09,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.logprimary,YES
+2026-08-12 09:11:51,"appb_primary, appb_standby",HADR is healthy: both nodes are in PEER state and CONNECTED.,DRIFT,Low,db_cfg.LOGPRIMARY,YES
+2026-08-22 05:15:04,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-22 05:17:28,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both nodes.,DRIFT,Low,db_cfg.logprimary,YES
+2026-08-22 05:19:24,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-22 05:41:12,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-22 05:47:18,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Low,db_cfg.logprimary,YES
+2026-08-22 05:49:25,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-22 05:50:11,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-22 06:15:54,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-22 06:16:51,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-22 06:38:12,"appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby nodes.,NO_DRIFT,None,None,NO
+2026-08-22 07:14:17,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-22 07:14:29,"appa_primary, appa_standby, appb_primary, appb_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-22 08:51:46,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-22 09:12:02,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both primary and standby.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
+2026-08-22 09:18:58,"appa_primary, appa_standby",HADR state is PEER and CONNECTED on both nodes.,DRIFT,Medium,db_cfg.LOGPRIMARY,YES
