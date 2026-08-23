@@ -1,19 +1,60 @@
 import os
-import json
 import csv
+import json
+import asyncio
 import socket
+from datetime import datetime
+from typing import Dict, List, Any, Optional
+from fastapi import FastAPI, Request, Form, HTTPException
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.openapi.utils import get_openapi
+from dotenv import load_dotenv
 import requests
 import ibm_db
-from datetime import datetime
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, FileResponse
-from fastapi.templating import Jinja2Templates
-from dotenv import load_dotenv
+from pydantic import BaseModel, Field
+from typing import Any
+
+
+class DriftCheckRequest(BaseModel):
+    nodes: list[str] = Field(
+        ...,
+        description="DB2 node keys to check, for example appa_primary and appa_standby"
+    )
+
+
+class DriftCheckResponse(BaseModel):
+    status: str
+    data: dict[str, Any]
+
 
 load_dotenv()
 
-app = FastAPI(title="Multi-App DB2 AI Drift Engine")
+app = FastAPI(title="Multi-App DB2 AI Drift Engine",openapi_url="/openapi.json")
 templates = Jinja2Templates(directory="templates")
+
+#/openapi Json for AI foundry
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title="DB2 LUW AI Configuration Drift Engine",
+        version="1.0.0",
+        description="API for DB2 HADR Configuration Drift Analysis & ServiceNow CR Generation",
+        routes=app.routes,
+    )
+
+    # Injects your Public IP so Azure AI Foundry knows the exact host destination
+    openapi_schema["servers"] = [
+        {"url": "http://4.223.76.159"}
+    ]
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi
+
 
 AUDIT_CSV_PATH = "db2_drift_audit.csv"
 
@@ -44,24 +85,24 @@ NODE_INVENTORY = {
 def log_drift_to_csv(scanned_nodes: list, ai_result: dict, hadr_summary: str):
     """Appends scan execution metadata, HADR connection status, and drift results to a persistent CSV audit log."""
     file_exists = os.path.isfile(AUDIT_CSV_PATH)
-    
+
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     nodes_str = ", ".join(scanned_nodes)
     drift_status = ai_result.get("driftStatus", "UNKNOWN")
     overall_risk = ai_result.get("overallRisk", "None")
-    
+
     items = ai_result.get("items", [])
     drifted_params = "; ".join([item.get("parameter", "") for item in items]) if items else "None"
-    
+
     requires_cr = "YES" if drift_status == "DRIFT" else "NO"
 
     fieldnames = [
-        "Timestamp", 
-        "ScannedNodes", 
+        "Timestamp",
+        "ScannedNodes",
         "HADRConnectionStatus",
-        "DriftStatus", 
-        "OverallRisk", 
-        "DriftedParameters", 
+        "DriftStatus",
+        "OverallRisk",
+        "DriftedParameters",
         "RequiresServiceNowCR"
     ]
 
@@ -70,7 +111,7 @@ def log_drift_to_csv(scanned_nodes: list, ai_result: dict, hadr_summary: str):
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             if not file_exists:
                 writer.writeheader()
-            
+
             writer.writerow({
                 "Timestamp": timestamp,
                 "ScannedNodes": nodes_str,
@@ -95,7 +136,7 @@ def check_tcp_port(host: str, port: int, timeout=2) -> bool:
 def fetch_db2_raw_config(host: str, port: str, db: str, user: str, pwd: str) -> dict:
     """Extracts raw DB2 database (DBCFG), database manager (DBMCFG), and live HADR operational health."""
     conn_str = f"DATABASE={db};HOSTNAME={host};PORT={port};PROTOCOL=TCPIP;UID={user};PWD={pwd};"
-    
+
     try:
         conn = ibm_db.connect(conn_str, "", "")
     except Exception as ex:
@@ -381,20 +422,30 @@ async def get_node_statuses():
         }
     return {"nodes": status_report}
 
-@app.post("/api/run-drift-check")
-async def run_drift_check(request: Request):
-    """Fetches configs & HADR state, sends to AI, and logs run to CSV."""
+@app.post("/api/run-drift-check",response_model=DriftCheckResponse)
+async def run_drift_check(payload: DriftCheckRequest):
     try:
-        body = await request.json()
-        selected_node_keys = body.get("nodes", [])
+        selected_node_keys = payload.nodes
+
+        print(
+            f"🔥 DRIFT ENDPOINT HIT: {selected_node_keys}",
+            flush=True
+        )
 
         if not selected_node_keys:
-            return {"status": "error", "message": "No target nodes selected."}
+            return {
+                "status": "error",
+                "data": {
+                    "message": "No target nodes selected."
+                }
+            }
 
         collected_data = {}
+
         for key in selected_node_keys:
             if key in NODE_INVENTORY:
                 meta = NODE_INVENTORY[key]
+
                 host = os.getenv(meta["host_env"])
                 port = os.getenv(meta["port_env"])
                 db = os.getenv(meta["db_env"])
@@ -402,7 +453,10 @@ async def run_drift_check(request: Request):
                 pwd = os.getenv(meta["pwd_env"])
 
                 try:
-                    raw_cfg = fetch_db2_raw_config(host, port, db, user, pwd)
+                    raw_cfg = fetch_db2_raw_config(
+                        host, port, db, user, pwd
+                    )
+
                     collected_data[key] = {
                         "appName": meta["app"],
                         "role": meta["role"],
@@ -410,6 +464,7 @@ async def run_drift_check(request: Request):
                         "database": db,
                         "config": raw_cfg
                     }
+
                 except Exception as ex:
                     collected_data[key] = {
                         "appName": meta["app"],
@@ -417,26 +472,39 @@ async def run_drift_check(request: Request):
                         "error": f"Failed to fetch config: {str(ex)}"
                     }
 
+        print("🔥 DATA COLLECTED:", flush=True)
+        print(collected_data, flush=True)
+
         ai_analysis = analyze_payload_with_ai(collected_data)
 
-        # Extract HADR summary for CSV logging
-        hadr_summary = ai_analysis.get("hadrSummary", "PEER / CONNECTED")
+        print("🔥 AI ANALYSIS:", flush=True)
+        print(repr(ai_analysis), flush=True)
 
-        # Log execution to CSV audit file
-        log_drift_to_csv(selected_node_keys, ai_analysis, hadr_summary)
+        if not isinstance(ai_analysis, dict):
+            raise ValueError(
+                f"AI analysis is not a JSON object: "
+                f"{type(ai_analysis).__name__}: {repr(ai_analysis)}"
+            )
+
+        hadr_summary = ai_analysis.get("hadrSummary","PEER / CONNECTED")
+
+        log_drift_to_csv(selected_node_keys,ai_analysis,hadr_summary)
 
         return {"status": "success", "data": ai_analysis}
 
     except Exception as ex:
-        return {"status": "error", "message": str(ex)}
+        import traceback
+        traceback.print_exc()
+
+        raise HTTPException(status_code=500,detail=str(ex))
 
 @app.get("/api/download-audit-log")
 async def download_audit_log():
     """Allows downloading the persistent CSV audit file."""
     if os.path.exists(AUDIT_CSV_PATH):
         return FileResponse(
-            path=AUDIT_CSV_PATH, 
-            filename=f"db2_drift_audit_{datetime.now().strftime('%Y%m%d')}.csv", 
+            path=AUDIT_CSV_PATH,
+            filename=f"db2_drift_audit_{datetime.now().strftime('%Y%m%d')}.csv",
             media_type="text/csv"
         )
     return {"status": "error", "message": "No audit log records available yet."}
